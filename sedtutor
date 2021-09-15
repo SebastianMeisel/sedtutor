@@ -9,33 +9,33 @@
 TMPFILE=$(mktemp)
 
 
-if [[ $OSTYPE =~ 'linux'  ||  $1 == '-f' ||  $2 == '-f' ]]						             		# Check if OS-type is linux							
+if [[ $OSTYPE =~ 'linux'  ||  $1 == '-f' ||  $2 == '-f' ]]                      # Check if OS-type is linux                         
 then
-	sed -E "1,/^>(${PART}|HELP)/d;/^>(ADVANCED|HELP)/,\$d" $0 > ${TMPFILE} && 	# Extract temporary tutorial-/help-file
-	sed '1,/^>SOLUTIONS/d' ${TMPFILE} > ${TMPFILE}.sol &&	                  	# Extract solutions
-	sed -i '/^>SOLUTIONS/,$d' ${TMPFILE} 	                                  	# Delete solutions from tutorial-file
+    sed -E "1,/^>(${PART}|HELP)/d;/^>(ADVANCED|HELP)/,\$d" $0 > ${TMPFILE} &&   # Extract temporary tutorial-/help-file
+    sed '1,/^>SOLUTIONS/d' ${TMPFILE} > ${TMPFILE}.sol &&                       # Extract solutions
+    sed -i '/^>SOLUTIONS/,$d' ${TMPFILE}                                        # Delete solutions from tutorial-file
 else
-	sed -E '1,/^>HELP/d' $0 > ${TMPFILE}  								  		# Extract temporary help-file
+    sed -E '1,/^>HELP/d' $0 > ${TMPFILE}                                        # Extract temporary help-file
 fi
 
 # Format commands bold
 # sed -i '/\!sed/{s/^/\\033\[4m/ ; s/$/\\033\[0m/;}' ${TMPFILE}
 
-less -rN ${TMPFILE}                                                        		# Open tutorial-/help-file with less
-rm ${TMPFILE}*                                                            		# Delete temporary files
+less -rN ${TMPFILE}                                                             # Open tutorial-/help-file with less
+rm ${TMPFILE}*                                                                  # Delete temporary files
 
 
 exit 0
 
 >BASIC>>>>>>>>>>>>>>>>>>>>>>>
 #########################################################################
-#                          												#
-#    #####  ######  #####   	#######	#	 #	#######	 ####	#### 	#
-#   #       #       #    #  	   #	#	 #	   #	#	 #	#   #	#
-#    ####   #####   #    #  ## 	   #	#	 #	   #	#	 #	####	#
-#        #  #       #    #  	   #	#	 #	   #	#	 #	#  #	#
-#   #####   ######  #####   	   #	 ####	   #	 ####	#	#	#
-#                           											#
+#                                                                       #
+#    #####  ######  #####       ####### #    #  #######  ####   ####    #
+#   #       #       #    #         #    #    #     #    #    #  #   #   #
+#    ####   #####   #    #  ##     #    #    #     #    #    #  ####    #
+#        #  #       #    #         #    #    #     #    #    #  #  #    #
+#   #####   ######  #####          #     ####      #     ####   #   #   #
+#                                                                       #
 #########################################################################
 
 * THIS FILE
@@ -54,7 +54,7 @@ As it is displayed in less, you can run any
 command in the examples by typing an exclamation
 mark (!) followed by the command. Try it: 
 
-	!sed '10q' %
+    !sed '10q' %
 
 This should display the first 10 lines of the
 files just like the head command. 
@@ -79,7 +79,7 @@ The original file is NOT altered by default.
 If you add the -n option to the sed command nothing is
 printed unless you explicitly command it: 
 
-	!sed -n '10q' % 
+    !sed -n '10q' % 
 
 leaves you with an empty output.
 
@@ -87,7 +87,7 @@ You can tell sed to print to standard output with the p
 command. You seperate different commands by a semicolon (;):
 
 
-	!sed -n '4p ; 10q' %
+    !sed -n '4p ; 10q' %
 
 p(rints) only the forth line, which contains some #-symbols
 #and q(uits) after reaching the 10th line.
@@ -102,21 +102,21 @@ pattern (e.g. a word). You can easily do that in sed.
 You place the pattern between to slashes (/?/) followed by
 the command: 
 
-	!sed -n '/Show me/p' %
+    !sed -n '/Show me/p' %
 
 With the -n option to suppress all other output this
 p(rints) only the following line: 
 
-	Show me this line!
+    Show me this line!
 
-	No other line contains this
-	pattern (except the sed command itself, which is
-		 acutally also printed). 
+    No other line contains this
+    pattern (except the sed command itself, which is
+         acutally also printed). 
 
 -- Exercise 1 --------------------------------------------
 Now try to show this line:
 
-	Sed is an AMAZING tool!
+    Sed is an AMAZING tool!
 
 -- To see the solution type: !sed -n 's/^1 //p' %.sol ---- 
 
@@ -127,19 +127,60 @@ What if you don
 not? Then you can add the I-switch after the closing slash
 of the search pattern: 
 
-	!sed -n '/big/Ip' %
+    !sed -n '/big/Ip' %
 
 (p)rints each of the following lines:
 
-	This is a big!
-	But this is BIG!
-	This is also kinda biG!
+    This is a big!
+    But this is BIG!
+    This is also kinda biG!
 
 -- Exercise 2 -------------------------------------------
 Now try to show each line of this file, that has the word
 'search' in it with a case-insensitive search.  
 
 -- Solution: !sed -n 's/^2 //p' %.sol -------------------
+
+++ GROUPING
+
+So far we know two commands:
+
+1) q(uit) stops the processing of the file once the given
+        line number is reach or we have the first match on the
+        search pattern.
+2) p(rint) prints the line with the given number or each
+        line that matches the given search pattern.
+
+But what if we want to combine the two: we want to only
+print the FIRST line with a !sed command and quit then. 
+
+We already learned that you can use a semicolon to separate
+two columns. But if we try the following command:
+
+    !sed -n '/!sed/p ; q' %
+
+it doesn't work. Why not? It's because the search pattern
+only applies for the first command: p(rint). The q(uit)
+command is run on ANY line, so sed stops after the first
+line, those never reaching  a line that matches the pattern.
+
+You could run:
+
+    !sed -n '/!sed/p ; /!sed/q' %
+
+but that seems a bit redundant. Here it's better to GROUP
+the two command by putting a pair of curly braces around
+them:
+
+    !sed -n '/!sed/ {p ; q}' %
+
+You can also use the curly braces to combine to pattern
+searches, when you want to search for pattern in lines that
+also match another pattern:
+
+    !sed -n '/!sed/ {/big/p}' %
+
+shows all sed-commands that search for the word 'big'.
 
 ++ NEGATIV MATCHES
 
@@ -154,16 +195,14 @@ So we might want to exclude lines that contain the pattern
 '!sed' from our search. We can do this by adding a !-switch
 after the search like this: 
 
-	!sed -n '/!sed/! {/big/Ip;}' %
+    !sed -n '/!sed/! {/big/Ip;}' %
 
-The curly brackets you see here are actually an advanced
-feature, that you can learn more about in the second part of
-the tutorial. Here we use it to search for a pattern in all
+using the curly braces to search for a pattern in all
 lines that do NOT contain the first search pattern. 
 
-Normaly a command must follow the !-switch:
+Else a command must follow the !-switch:
 
-	!sed -n '/sed/!p' %
+    !sed -n '/sed/!p' %
 
 p(RINTS) all line that do NOT contain the word 'sed'.
 
@@ -176,9 +215,29 @@ Now try to print all lines that don't contain the letter e.
 
 ;; This is an important
 ;; comment.
-This is just a line with to semicolons ;; 
+This is a line that ends on two semicolons ;;
 
-Sometimes you 
+Sometimes it matters WHERE in the line the pattern
+occurs. Either you search for a pattern at the beginning of
+a line (e.g. indicating a comment) or at the end of the
+line. 
+
+Regular expressions (Look it up, if you never heard of
+it!) can help you here:
+
+A caret symbol (^) at the beginning of a pattern is used to
+indicate the beginning of a line:
+
+    !sed -n '/!sed/! {/^;;/p}' %
+
+A dollar sign ($) at the end of a pattern indicates the end
+of a line:
+
+-- Exercise 4: ---------------------------------------------
+Now try to search for line 149.
+
+-- Solution: !sed -n 's/^4 //p' %.sol ----------------------
+
 
 * EDITING WITH SEARCH AND REPLACE
 
@@ -190,23 +249,23 @@ s stands for 'substitute'. It searches for the pattern
 between to slashes and replaces it by the pattern between
 the second and a third slash: 
 
-	!sed -n ''/!sed/{s/SEARCH FOR/REPLACE BY/p;}' %
+    !sed -n '/!sed/ {s/SEARCH FOR/REPLACE BY/p;}' %
 
 alters the following line:
 
-	We SEARCH FOR this.
+    We SEARCH FOR this.
 
 Again we can use the I-switch for a case-insensitive search.
 This does ofcourse not effect the replace pattern: 
 
-	!sed -n '/!sed/!{s/RoSe/rOsE/Ip;}' %
+    !sed -n '/!sed/! {s/RoSe/rOsE/Ip;}' %
 
 alters the following line (We limit the substitute to lines
 containing a double quote): 
-	
-	"Rose is a rose is a rose is a rose." 
+    
+    "Rose is a rose is a rose is a rose." 
 
-	(Gertrud Stein, "Sacred Emily", Geography and Plays)
+    (Gertrud Stein, "Sacred Emily", Geography and Plays)
 
 You probably notice, that only the first occurence of the
 word is substituted.  
@@ -214,20 +273,20 @@ word is substituted.
 This is the default behaviour of the s(ubstitute) command.
 You can use the g-Switch to change it: 
 
-	!sed -n '/sed/!{s/RoSe/rOsE/gIp;}' %
+    !sed -n '/sed/!{s/RoSe/rOsE/gIp;}' %
 
-You can also select which match is replace by using a number
+You can also select which match is replaced by using a number
 instead of the g: 
 
-	!sed -n '/sed/!{s/RoSe/rOsE/2Ip;}' %
+    !sed -n '/sed/! {s/RoSe/rOsE/2Ip;}' %
 
 replaces the second match (in the line). 
 
--- Exercise 4 ------------------------------------------------
+-- Exercise 5 ------------------------------------------------
 Now try to replace the 4th occurence of the word in the poem
 line. 
 
--- Solution: !sed -n 's/^4 //p' %.sol ------------------------
+-- Solution: !sed -n 's/^5 //p' %.sol ------------------------
 
 + CHANGE THE CURRENT FILE
 
@@ -237,48 +296,48 @@ you are working on. For this sed offers you the -i option,
 which stands for 'in place'.  
 
 Read the following line:
-	
-	I want changes to be temporary.
+    
+    I want changes to be temporary.
 
 Try the following command:
-	
-	!sed -i '/sed/! {s/be temporary/be permanent/;}' % 
+    
+    !sed -i '/sed/! {s/be temporary/be permanent/;}' % 
 
 and read the previous line again. You can see, that the
 current file was changed in place. 
 
-Ofcourse sed has no undo function so it's better to have a 
+sed has no undo function so it's better to have a 
 backup-file. If you add a suffix after the -i option, one
-will be created. Some use .bak as a suffix. I prefer a
+will be created. Some use .Baku as a suffix. I prefer a
 simple tilde (~).  
 
 You can now change the sentence
 
-	No backup no pitty.
+    No backup no pity.
 
 with the following command, where 2 s(ubstitution) commands
 are used, which are separated by a semicolon (;): 
 
-	!sed -i~ '/sed/! {s/No/With a/ ; s/pitty/problem/;}' %
+    !sed -i~ '/sed/! {s/No/With a/ ; s/pity/problem/;}' %
 
 This seems to have worked, but now look at beginning of line
-158. We better undo the changes with a simple: 
+256. We better undo the changes with a simple: 
 
-	!mv %~ %
+    !mv %~ %
 
 -- WHAT HAS GONE WRONG? 
 
-Well the 'Now' at line 158 contains the pattern 'No' which
+Well the 'Now' at line 256 contains the pattern 'No' which
 was replaced. This is very important: sed searches for
 patterns NOT for words. 
 
 To make sure sed only replace the word 'No' we have to embed
 it between two '\b'-expressions which stand for (word)
-b(oundary). It's a regular expression (Look it up, if you
+b(oundary). It's a regular expression (Again: Look it up, if you
 don't know it!) for all signs that separate words like
 spaces, newlines, dashes, punction marks, etc: 
 
-	!sed -i~ '/!sed/! {s/\bNo\b/With a/ ; s/pitty/problem/;}' %
+    !sed -i~ '/!sed/! {s/\bNo\b/With a/ ; s/pity/problem/;}' %
 
 will leave every 'Now' and 'Norbert' alone. Still EVERY 'No'
 in the file is replaced, which most likely is not what you
@@ -287,54 +346,272 @@ want. So let's undo it again (!mv %~ %).
 To be on the save side you should add the number of the line
 before the s(ubstitute)-command:
 
-	!sed -i~ '/!sed/! {181 s/\bNo\b/With a/ ; s/pitty/problem/;}' %
+    !sed -i~ '/!sed/! {286 s/\bNo\b/With a/ ; s/pity/problem/;}' %
 
 or you could search for another pattern in the line (undo before!):
 
-	!sed -i~ '/!sed/! {/backup/ s/\bNo\b/With a/ ; s/pitty/problem/;}' %
+    !sed -i~ '/!sed/! {/backup/ s/\bNo\b/With a/ ; s/pity/problem/;}' %
 
--- Excercise 5 --------------------------------------------------
+-- Excercise 6 --------------------------------------------------
 Now try to correct the typo in the following sentence:
 
    It's so sed, when people use vim instead of sed!
 
-TIP: You can search for patterns in less by typing a slash
-     (/) followed by the pattern 
-     to find a uniq one.
+[ TIP: You can search for patterns in less by typing a slash    ]
+[      (/) followed by the pattern                              ]
+[      to find a uniq one.                                      ]
 
--- Solution: !sed -n 's/^5 //p' %.s___----------------------------
+-- Solution: !sed -n 's/^6//p' %.sol ----------------------------
+
+++ PREPEND OR APPEND TO A LINE 
+
+Sometimes you might want to add stuff to the beginning of a
+line. For example  you might want to comment out a line.
+This can be done with a simple substitution use the
+caret-symbol as a regular expression for the beginning of a
+line:
+
+    !sed -i~ '/!sed/! {348 s/^/#/}' %
+
+should comment out the following dangerous line:
+
+ rm -rf / # Delete the whole Linux file system
+
+Other times you might want append to the end of an line
+using the dollar sign:
+
+    !sed -i~ '/!sed/! {357 s/$/sed./}' %
+ 
+appends to the following line:
+
+    I'm so glad, I know about 
+
+-- Exercise 7 -------------------------------------------
+
+Now use 2 substitutions to wrap the following line in
+parentheses.
+
+     Not sure, if this belongs here. 
+
+[ TIP: If you use two command in sed you have to separate ]
+[      them by a semicolon.                               ]
+[      If you use a line number or a search pattern, you  ]
+[      have to add before EACH command.                   ]
+
+-- Solution: !sed -n 's/^7//p' %.sol ----------------------------
 
 
-* ERASE AND ADD LINES
+* ERASE LINES
+
+So far we only actually used ONE editing function, which is
+s(ubstitute).
+
+Now its time to learn one more: d(elete) lines with the d-command: 
+
+      !sed -i~ '/!sed/! {/gratuitous/d}' %
+
+Will delete the following line:
+
+    This line is gratuitous!
+
+-- Exercise 8 -------------------------------------------
+
+Delete any line with the word Windows in it.
+
+   Windows 11 is the greatest OS ever!
+
+-- Solution: !sed -n 's/^8 //p' %.sol ----------------------------
+
+Ain't that easy?
+
+This command is also really useful in connection with
+NEGATIVE MATCHES (look above). You could e.g. delete all lines, BUT
+that with a !sed-command in them:
+
+     !sed -i~ '/!sed/! d' %
+
+BUT DON'T FORGET TO RESTORE ALL LINES WITHOUT !sed: mv %~ %
+    
+* NOW WHAT ABOUT MULTIPLE LINES?
+
+Often you don't just want to process (e.g. delete) one line
+but a range of lines. Take the following example in
+HTML-syntax:
+
+<p>
+    This is a html paragraph with</br>
+    line breaks</br>
+    that I want to get rid of.
+</p>
+
+If you want to delete it you could do something like:
+
+   !sed -i~ '411d ; 412d; 413d; 414d; 415d' %
+
+which would perfectly work, but is not very convenient.
+
+You should better just address all the line at once with the
+start-address and end-address separated by a comma.
+
+Here the start- and address could be line numbers:
+
+   !sed -i~ '411,415 d' %
+
+or search-patterns (Restore with !mv %~ % before!):
+
+   !sed -i~ '/<p>/,/<\/p>/ d' %
+
+(Note you have to escape the slash IN the pattern with a
+backslash!)
+
+You can even use a combination of both (Again after undoing
+the changes):
+
+    !sed -i~ '/<p>/,415 d' %
+
+Finally you can tell sed to process a certain number of
+lines after the first address - which can again be either a
+line number:
+
+    !sed -i~ '411,+4 d' %
+
+or a search-pattern:
+
+    !sed -i~ '/<p>/,+4 d' %
+
+-- Exercise 9  -------------------------------------------------  
+
+Now delete the following following function:
+
+    function Nonsense () {
+    	exit 1;     
+    }
+
+a) by line-number-range. -- Solution: !sed -n 's/^9a)//p' %.sol 
+b) by start- & end-pattern. -- Solution: !sed -n 's/^9b)//p' %.sol 
+c) by line-number & end-pattern. -- Solution: !sed -n 's/^9c)//p' %.sol 
+d) by line-number + number of lines  -- Solution: !sed -n 's/^9d)//p' %.sol 
+e) by start-pattern + number of lines  -- Solution: !sed -n 's/^9e)//p' %.sol 
+
+-- All Solutions: !sed -n 's/^9//p' %.sol ----------------------------
 
 
-* NOW WHAT ABOUT MULTIBLE LINES?
-
-* D
+* DO IT ON SHELL OUTPUT
 
 >SOLUTIONS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 1 !sed -n '/AMAZING/p' %
 2 !sed -n '/search/Ip' %
 3 !sed -n '/e/!p' %
-4 !sed -n '/!sed/! {s/RoSe/rOsE/4Ip;}' %
-5 !sed -i~ '/!sed/! {/people use/ s/sed/sad/}' % OR !sed -i~ '/!sed/! {240s/sed/sad/}' % 
+4 !sed -n '/!sed/! {/;;$/p}' %
+5 !sed -n '/!sed/! {s/RoSe/rOsE/4Ip;}' %
+6a) !sed -i~ '/!sed/! {/people use/ s/sed/sad/}' %
+6b) !sed -i~ '/!sed/! {328 s/sed/sad/}' % 
+7a) !sed -i~ '/!sed/! {/Not sure/ { s/^/(/ ;  s/$/)/ }}' %
+7b) !sed -i~ '/!sed/! {364 {s/^/(/ ; s/$/)/ }}' %
+8 !sed -i~ '/!sed/! {/Windows/d}' %
+9a) !sed -i~ '456,458 d' %
+9b) !sed -i~ '/{$/,/}$/ d' %
+9c) !sed -i~ '456,/}$/ d' %
+9d) !sed -i~ '456,+2 d' %
+9e) !sed -i~ '/{$/,+2 d' %
 
 >ADVANCED>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 #########################################################################
-#                          												#
-#    #####  ######  #####   	#######	#	 #	#######	 ####	#### 	#
-#   #       #       #    #  	   #	#	 #	   #	#	 #	#   #	#
-#    ####   #####   #    #  ## 	   #	#	 #	   #	#	 #	####	#
-#        #  #       #    #  	   #	#	 #	   #	#	 #	#  #	#
-#   #####   ######  ##### ADVANCED #	 ####	   #	 ####	#	#	#
-#                         		 										#
+#                                                                       #
+#    #####  ######  #####       ####### #    #  #######  ####   ####    #
+#   #       #       #    #         #    #    #     #    #    #  #   #   #
+#    ####   #####   #    #  ##     #    #    #     #    #    #  ####    #
+#        #  #       #    #         #    #    #     #    #    #  #  #    #
+#   #####   ######  ##### ADVANCED #     ####      #     ####   #   #   #
+#                                                                       #
 #########################################################################
+
+* INSERTION
+
+Next we want to learn, how to add lines to a files. For this
+we have to options. 
+
+The first on is to i(nsert) a line BEFORE the matched line:
+
+    !sed -i~ '/mine!$/ i If you can rhyme,' %
+
+Add a line before the following line:
+
+    You will be mine!
+
+The second option is to a(ppend) a line AFTER the matched line:
+    
+    !sed -i~ '/mine!$/ a And that is fine!' %
+
+Time to exercise on the line:
+
+     Today is today.
+
+-- Exercise 9 -------------------------------------------
+Add the line:
+
+    Yesterday today was tomorrow.
+
+where it belongs using the LINE NUMBER!
+
+-- Solution: !sed -n 's/^9 //p' %.sol ----------------------------
+
+-- Exercise 10 -------------------------------------------
+Add the line:
+
+    Tommorow today will be yesterday.
+
+where it belongs using the LINE NUMBER!
+
+-- Solution: !sed -n 's/^10 //p' %.sol ----------------------------
+
+
+++ KNOWN ISSUES WITH TEXT INPUT IN SED
+
+With the input commands it is important, that the TEXT, that is
+the LAST THING before the closing single quote. 
+
+The following examples WON'T WORK!
+
+    !sed -i~ '/!sed/! {/mine/ a Can not add that line.;}' %
+    !sed -i~ '/mine!$/ i This line comes out strange: ; /mine$/ s/be/never be/' % 
+
+In the first example the semicolon and the closing brace
+are not recognized, but seen as text, leading to an error.
+    
+The second example 'works', but what is meant to be a second
+command will be printed as text to the file.
+
+There is a work around for this, but that will be part of
+the ADVANCED tutorial. 
+
+Also be aware, that you can't use apostrophes, because those
+would close the command block of sed:
+
+    !sed -i~ '/mine!$/ a And that's fine!' %	
+
+doesn't work. There is a simple work around: Use double
+quotes around the sed commands. But be aware, that this
+leads to other problems, as some chars are expanded by the
+shell.
+
+Namely you have to escape dollar signs with an  back slash,
+to work as expected:
+
+   !sed -i~ "/mine!\$/ a And that's fine!" %	
+
 
 * EXPAND THE PATTERN SPACE
 
 * HOLD SPACE
+
+>SOLUTION>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+9 !sed -i~ '379 i Yesterday today was tomorrow.' %
+10 !sed -i~ '380 a Tomorrow today will be yesterday.' %
+
 
 >HELP>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 sed.tutor [basic|advanced] [-f]
@@ -342,7 +619,7 @@ sed.tutor [basic|advanced] [-f]
 Run the GNU stream editor (GNU-sed) tutorial on basic (default) or advanced usage.
 
 sed on BSD based systems like MacOS has other (less) features and syntax. Use the
--f (force) option to run on non linux based OSs anyway.
+-f (force) option to run on non Linux based OSs anyway.
 
 (c) Sebastian Meisel 2017; GPL 2
 
