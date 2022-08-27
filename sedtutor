@@ -498,6 +498,37 @@ e) by start-pattern + number of lines  -- Solution: !sed -n 's/^9e)//p' %.sol
 
 * DO IT ON SHELL OUTPUT
 
+While - as we saw - you can edit files with sed and there ARE 
+usecases for that many will argue that using a visual editor like vim
+or emacs will be much more convinient in most of the basic cases we 
+learned so far.
+
+However you cannot EASILY edit the output of shell command with a 
+visual editor and here is where sed really shines as it processes 
+standard input if no file is given.
+
+What if you e.g. want to share the output of the ip command somewhere,
+but don't want your IPs or MAC-addresses with everybody? sed is your 
+friend:
+
+    !ip a | sed -E 's/[0-9]{1,3}\./XXX./g ; s/[0-9a-f]{1,4}:/XXXX:/g' 
+
+The -E-option to sed command enables EXTENDED REGULAR EXPRESSIONS. That 
+is not the toppic of this tutorial, but regular expressions can help you 
+construct very complex search and substitution patterns. The ones above 
+match IPv4, IPv6 and MAC-addresses except for the last part.
+
+++ THAT'S ALL
+
+Yes, that's all the BASICS. But if you want to learn more try the
+ADVANCED tutorial by running: 
+
+    ./sedtutor advanced
+
+to learn how commands like the following work:
+
+!sed -E -n '/!sed/!s/\* (.).*/\1/p' % | sed 'N;N;{s/\n//g;s/^/\n/};$s/$/\n\n???\n/' 
+
 >SOLUTIONS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 1 !sed -n '/AMAZING/p' %
@@ -527,6 +558,14 @@ e) by start-pattern + number of lines  -- Solution: !sed -n 's/^9e)//p' %.sol
 #   #####   ######  ##### ADVANCED #     ####      #     ####   #   #   #
 #                                                                       #
 #########################################################################
+
+* About this file
+
+This is the second - advanced - part of the interactive sed tutorial. I asume
+that You
+
+a) worked your way through the basic tutorial or
+b) know the basics of sed.
 
 * INSERTION
 
