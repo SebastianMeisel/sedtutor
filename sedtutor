@@ -11,9 +11,9 @@ TMPFILE=$(mktemp)
 
 if [[ $OSTYPE =~ 'linux'  ||  $1 == '-f' ||  $2 == '-f' ]]                      # Check if OS-type is linux                         
 then
-    sed -E "1,/^>(${PART}|HELP)/d;/^>(ADVANCED|HELP)/,\$d" $0 > ${TMPFILE} &&   # Extract temporary tutorial-/help-file
-    sed '1,/^>SOLUTIONS/d' ${TMPFILE} > ${TMPFILE}.sol &&                       # Extract solutions
-    sed -i '/^>SOLUTIONS/,$d' ${TMPFILE}                                        # Delete solutions from tutorial-file
+    sed -nE "/^>(${PART}|HELP)/,/^>/{/^>SOLUTION/q;s/^>.*$//;p}" $0 | sed '1d' > ${TMPFILE} &&   # Extract temporary tutorial-/help-file
+    sed -n '/^>EXAMPLE/,/^>/p' $0 | sed -E '/^(>|$)/d' > ${TMPFILE}.exmpl  &&   # Extract temporary example-file
+    sed -nE '0,/^>ADVANCED/d;/^>SOL/,/^>/ {/^>(ADVANCED|HELP|EXAMPLE)/q;s/^>.*$//;p}' $0 > ${TMPFILE}.sol # Extract solutions
 else
     sed -E '1,/^>HELP/d' $0 > ${TMPFILE}                                        # Extract temporary help-file
 fi
@@ -521,7 +521,7 @@ match IPv4, IPv6 and MAC-addresses except for the last part.
 ++ THAT'S ALL
 
 Yes, that's all the BASICS. But if you want to learn more try the
-ADVANCED tutorial by running: 
+advanced tutorial by running: 
 
 ./sedtutor advanced
 
@@ -548,7 +548,6 @@ to learn how commands like the following work:
     9e) !sed -i~ '/{$/,+2 d' %
 
 >ADVANCED>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
 #########################################################################
 #                                                                       #
 #    #####  ######  #####       ####### #    #  #######  ####   ####    #
@@ -666,21 +665,17 @@ You have three options to add multiple lines:
    
     !sed -i~ -e '/!sed/! {/example line/i After one or maybe' -e '/example line/i two lines of mine' -e '}' % 
 
-
  2) Use the \n-escape to add new lines.
 
      !sed -i~ -e '/!sed/! {/example line/i After one or maybe\ntwo lines of mine' -e '}' % 
-
 
  3) Add a backslash (\) after the first line and then add a normal line-break by hitting enter:
 
      !sed -i~ -e '/!sed/! {/example line/i After one or maybe\
   two lines of mine' -e '}' % 
 
-
 ! THE THIRD SOLUTION WON'T WORK IN THIS FILE (IN LESS), BUT IN A PROPER TERMINAL ! 
 
-    
 This is an example line!
 
 Now let's see, what you learned.
@@ -717,7 +712,7 @@ tutorial by running
 
 But what does this command do? After searching for a pattern we r(ead) from a
 file. This file is /dev/stdin which is the standard-input to which we write at
-the end of the line useing a here-document. (To learn more on here-documents,
+the end of the line using a here-document. (To learn more on here-documents, 
 search for it online or in the bash man-page.)
 
 You can read from any file (you have read-permission for) with the
@@ -725,30 +720,75 @@ r-command. It's content will be inserted after the line the r-command is
 performed on. If these are multiple lines, the (whole) file will be appended
 each time:
 
-  !sed -n -e '173,+3{p; r /etc/lsb-release' -e'}' % 
+  !sed -n -e '/^  Windows/,+3{p; r %.exmpl' -e'}' % 
  
+  Windows is the greatest
+  operating system
+  of the world.
+
 I had to split the command-blocks again, as the r-command also expects the end
 of the command-block after the file-name. 
 
-There als is another R(ead)-command, with a capitalized R, that only prints one
+There also is another R(ead)-command, with a capitalized R, that only prints one
 line of the file, each time it is called:
 
-  !sed -n -e '173,+3{p; R /etc/lsb-release' -e'}' %  
+  !sed -n -e '/^  Windows/,+3{p; R %.exmpl' -e'}' %  
 
 You can also w(rite) to files:
 
-  !sed -n -e '176,+1w %.test' -e '/learn/w %.learn' %
+  !sed -n -e '1,~2w %.test' -e '/learn/w %.learn' %
 
 This writes to two files, you can than display by running:
 
   !cat %.test
   !cat %.learn
 
-
-
 * EXPAND THE PATTERN SPACE
 
+So far there already are a lot of ways, we can manipulate files with sed. We
+cannot, however, remove line breaks. If you try:
+
+   !sed -n '198,199{s/\n//g;p}' %
+
+it doesn't work.  
+
+That is because only operates on one line at a time. And this line end BEFORE
+the line break. We can however add more lines to the so called "pattern space"
+of sed. That is the portion of the file sed operates on. For that we use the
+n(ext line)-command (you can either use a lowercase or an uppercase 'n'):
+
+   !sed -n '198,199{N;s/\n//g;p}' %
+
+To add more lines, you have to repeat the 'n'-command:
+
+   !sed -n '205{N;N;N;N;s/\n//g;p}' %
+
 * HOLD SPACE
+
+In a modern editor we do a lot of copy and paste. This is possible to in
+sed. With the h(old)-command you can put a line to the "hold space", that is
+used to keep stuff you want to copy.
+
+You can then paste it with the g(et from hold space)-command:
+
+  An editor is
+  An editor.
+  
+  !sed '224{h;g}' %
+
+ Of both commands there is a lowercase and an uppercase variant. The lowercase
+ 'h' and 'g' replace whatever is in the hold/ pattern space – The
+ uppercase variant appends to the hold/ pattern space:
+
+  !sed '224{H;G}' %
+
+Note the empty line between the original and the copied line. It's there because
+when you start sed, the hold space isn't empty - it contains an empty line, to
+which the H-command appends the line from the pattern space, while the h-command
+replaces the empty line:
+
+  !sed '224{h;G}' %
+
 
 >SOLUTIONS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -765,6 +805,10 @@ This writes to two files, you can than display by running:
 11  with a banjo on my knee.'  %
 /tmp/tmp.38E0J5Bted
 
+>EXAMPLE>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+example of a badly designed
+while Linux is the only real
+no offence meant.
 
 >HELP>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 sed.tutor [basic|advanced] [-f]
@@ -775,8 +819,3 @@ sed on BSD based systems like MacOS has other (less) features and syntax. Use th
 -f (force) option to run on non Linux based OSs anyway.
 
 (c) Sebastian Meisel 2017; GPL 2
-
-
-
-
-
